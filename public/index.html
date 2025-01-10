@@ -6,6 +6,7 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>BTC/USDT Real-Time Data</title>
     <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
 </head>
 <body>
     <div class="container">
@@ -35,8 +36,18 @@
     </footer>
 
     <script>
-        // You can add JavaScript here to update live data
-        // Example: WebSocket for BTC data and alerts (you can modify it as per your needs)
+        // Connect to the server via socket.io
+        const socket = io();
+
+        // Listen for updates to the BTC data
+        socket.on('btcData', (data) => {
+            const price = data.price;
+            const volume = data.volume;
+
+            // Update the displayed price and volume
+            document.getElementById('price').textContent = price;
+            document.getElementById('volume').textContent = volume;
+        });
     </script>
 </body>
 </html>

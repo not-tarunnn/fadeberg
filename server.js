@@ -1,11 +1,15 @@
 const express = require('express');
 const axios = require('axios');
 const WebSocket = require('ws');
+const http = require('http');
+const socketIo = require('socket.io');
 require('dotenv').config();
 
 const app = express();
-const port = process.env.PORT || 3000;
+const server = http.createServer(app);
+const io = socketIo(server);  // Create a socket.io server on top of the HTTP server
 
+const port = process.env.PORT || 3000;
 const ONE_SIGNAL_APP_ID = '043f83de-a351-4d50-8f2c-377d67fb6657';
 const ONE_SIGNAL_API_KEY = 'os_v2_app_aq7yhxvdkfgvbdzmg56wp63gk7tdpdumpawehoucei6mmj2anyzgk7cbcfbd6cofymw4wyv4w6w5qy2rkhwcqm3qonwfw5bab5duvjq';
 
@@ -44,12 +48,12 @@ const getHourlyVolume = async () => {
 
     // Get the last hour's volume from the data
     const lastHourData = response.data[response.data.length - 1];
-    const volume = parseFloat(lastHourData[5]); // 5th index corresponds to volume in Klines response
+    const volume = parseFloat(lastHourData[5]);
 
     console.log(`Hourly Volume: ${volume}`);
 
     // Define the threshold for volume
-    const volumeThreshold = 100; // Example threshold for volume
+    const volumeThreshold = 100;  // Example threshold for volume
 
     if (volume > volumeThreshold) {
       sendPushNotification(`Hourly BTC Volume crossed the threshold! Current volume: ${volume}`);
@@ -73,6 +77,9 @@ socket.onmessage = (event) => {
 
   console.log(`Price: ${price}, Volume: ${volume}`);
 
+  // Emit the price and volume to all connected clients
+  io.emit('btcData', { price, volume });
+
   // Set the price threshold to 93,000
   const priceThreshold = 93000;  // Price threshold
 
@@ -81,13 +88,13 @@ socket.onmessage = (event) => {
     sendPushNotification(`BTC Price has fallen below the threshold! Current price: ${price}`);
   }
 
-  const volumeThresholdRealtime = 100;  // Real-time volume threshold (for demonstration)
+  const volumeThresholdRealtime = 100;  // Real-time volume threshold
   if (volume > volumeThresholdRealtime) {
     sendPushNotification(`Real-time Volume crossed the threshold! Current volume: ${volume}`);
   }
 };
 
-// Start the Express server
-app.listen(port, () => {
+// Start the Express server with socket.io
+server.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
 });
