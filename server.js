@@ -39,6 +39,11 @@ const sendPushNotification = async (message) => {
   }
 };
 
+// Function to send a welcome notification when a client connects
+const sendWelcomeNotification = () => {
+  sendPushNotification("Welcome to BTC/USDT Real-Time Data! Stay updated with live price and volume data.");
+};
+
 // Function to fetch hourly volume from Binance REST API
 const getHourlyVolume = async () => {
   try {
@@ -93,6 +98,21 @@ socket.onmessage = (event) => {
     sendPushNotification(`Real-time Volume crossed the threshold! Current volume: ${volume}`);
   }
 };
+
+// Socket.io connection handling
+io.on('connection', (socket) => {
+  console.log('A client connected');
+  
+  // Send the welcome notification to the client when they connect
+  sendWelcomeNotification();
+
+  // Emit a message to the connected client (optional)
+  socket.emit('message', 'Welcome to BTC/USDT Real-Time Data!');
+  
+  socket.on('disconnect', () => {
+    console.log('A client disconnected');
+  });
+});
 
 // Start the Express server with socket.io
 server.listen(port, () => {
