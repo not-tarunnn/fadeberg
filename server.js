@@ -16,6 +16,17 @@ const ONE_SIGNAL_API_KEY = 'os_v2_app_aq7yhxvdkfgvbdzmg56wp63gk7tdpdumpawehoucei
 // Serve static files (index.html)
 app.use(express.static('public'));
 
+// Force HTTPS in production
+if (process.env.NODE_ENV === 'production') {
+  app.use((req, res, next) => {
+    if (req.headers['x-forwarded-proto'] !== 'https') {
+      return res.redirect(301, 'https://' + req.headers.host + req.url);
+    }
+    next();
+  });
+}
+
+
 // Function to send push notification via OneSignal
 const sendPushNotification = async (message) => {
   try {
